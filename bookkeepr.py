@@ -4,15 +4,20 @@ from os.path import expanduser
 
 
 class DBItem(object):
-    fromQuery = ''
-    toQuery = ''
     dbpath = expanduser('~/.bookkeepr/user.db')
-    con = sqlite3.connect(dbpath)
-    c = con.cursor()
+
+    def __init__(self):
+        self.con = sqlite3.connect(self.dbpath)
+        self.c = self.con.cursor()
 
     def load(self, itemId):
         self.cr.execute(self.fromQuery, itemId)
         return self.c.fetchone()
+
+    def save(self, query, data):
+        self.c.execute(query, data)
+        self.con.commit()
+        return c.lastrowid
 
 
 class Bill(DBItem):
@@ -72,6 +77,9 @@ class Currency(DBItem):
         con.commit()
         con.close()
         return c.lastrowid
+
+    def toDBtest(self):
+        return super.save(self.toQuery, (self.cid, self.name, self.symbol))
 
     def toString(self):
         print('Currency {}, Symbol {}'.format(self.name, self.symbol))
