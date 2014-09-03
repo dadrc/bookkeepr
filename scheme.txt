@@ -1,0 +1,8 @@
+CREATE TABLE tags(tid INTEGER PRIMARY KEY, text STRING);
+CREATE TABLE billtags(tid INTEGER, bid INTEGER, FOREIGN KEY(bid) REFERENCES bills(bid), FOREIGN KEY(tid) REFERENCES tags(tid));
+CREATE TABLE users(uid INTEGER PRIMARY KEY, password VARCHAR(40), login STRING UNIQUE);
+CREATE INDEX [idx_billtags_bid] ON [billtags] ([bid]);
+CREATE TABLE [currencies] ([cid] INTEGER PRIMARY KEY AUTOINCREMENT, [name] STRING, [symbol] VARCHAR (3));
+CREATE TABLE [bills] ([bid] INTEGER PRIMARY KEY, [uid] INTEGER, [image] STRING, [name] STRING, [amount] INTEGER DEFAULT(0), [cid] INTEGER REFERENCES [currencies] ([cid]), FOREIGN KEY ([uid]) REFERENCES [users] ([uid]));
+CREATE INDEX [idx_bills_uid] ON [bills] ( [uid] );
+
