@@ -20,21 +20,33 @@ class DBItem:
 
 
 class Bill(DBItem):
+    @classmethod
+    def fromDB():
+        raise NotImplemented
 
-    def __init__():
-        return None
+    @classmethod
+    def fromData():
+        raise NotImplemented
 
 
 class Tag(DBItem):
+    @classmethod
+    def fromDB():
+        raise NotImplemented
 
-    def __init__():
-        return None
+    @classmethod
+    def fromData():
+        raise NotImplemented
 
 
 class User(DBItem):
+    @classmethod
+    def fromDB():
+        raise NotImplemented
 
-    def __init__():
-        return None
+    @classmethod
+    def fromData():
+        raise NotImplemented
 
 
 class Currency(DBItem):
