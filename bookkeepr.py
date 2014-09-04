@@ -35,7 +35,7 @@ class Bill(SqliteItem):
 
 class Tag(SqliteItem):
     @classmethod
-    def fromDB():
+    def fromDB(self, tid:
         raise NotImplemented
 
     @classmethod
@@ -44,8 +44,8 @@ class Tag(SqliteItem):
 
 
 class User(SqliteItem):
-    fromQuery = 'SELECT name, symbol FROM currencies WHERE cid = ?'
-    toQuery = 'INSERT INTO currencies (cid, name, symbol) VALUES (?,?,?)'
+    fromQuery = 'SELECT login, password FROM users WHERE uid = ?'
+    toQuery = 'INSERT INTO users (uid, login, password) VALUES (?,?,?)'
 
     @classmethod
     def fromDB(self, uid):
@@ -69,6 +69,9 @@ class User(SqliteItem):
         uid = super(User, self).save(self.toQuery, data)
         self.uid = uid if self.uid is None else self.uid
         return self.uid
+
+    def printSelf(self):
+        print('User {}, password hash {}'.format(self.login, self.password))
 
 
 class Currency(SqliteItem):
@@ -101,12 +104,12 @@ class Currency(SqliteItem):
         self.cid = cid if self.cid is None else self.cid
         return self.cid
 
-    def toString(self):
+    def printSelf(self):
         print('Currency {}, Symbol {}'.format(self.name, self.symbol))
 
 
 if __name__ == '__main__':
     euro = Currency.fromData('Euro', '€')
-    euro.toString()
+    euro.printSelf()
     cid = euro.toDB()
     print('New ID: {}'.format(cid))
