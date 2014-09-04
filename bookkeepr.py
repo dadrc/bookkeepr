@@ -16,9 +16,12 @@ class SqliteItem(object):
         self.con.commit()
         return self.c.fetchone()
 
-    ##TODO fix for updates!
-    def save(self, query, data):
-        self.c.execute(query, data)
+    def update(self, data):
+        self.c.execute(self.updateQuery, data)
+        return self.con.commit()
+
+    def create(self, data):
+        self.c.execute(self.createQuery, data)
         self.con.commit()
         return self.c.lastrowid
 
@@ -35,7 +38,7 @@ class Bill(SqliteItem):
 
 class Tag(SqliteItem):
     @classmethod
-    def fromDB(tid):
+    def fromDB(self, tid):
         """Mom, it's not a phase! I'm a constructor, really!"""
         this = Tag()
         this.text = super(Tag, this).load(this, tid)
@@ -52,7 +55,7 @@ class User(SqliteItem):
     toQuery = 'INSERT INTO users (uid, login, password) VALUES (?,?,?)'
 
     @classmethod
-    def fromDB(uid):
+    def fromDB(self, uid):
         """This is a constructor. Really."""
         this = User()
         (this.name, this.password) = super(User, this).load(this, uid)
@@ -60,7 +63,7 @@ class User(SqliteItem):
         return this
 
     @classmethod
-    def fromData(login, password, uid=None):
+    def fromData(self, login, password, uid=None):
         """This is a constructor. Really."""
         this = User()
         this.login = login
@@ -79,15 +82,17 @@ class User(SqliteItem):
 
 
 class Currency(SqliteItem):
-    fromQuery = 'SELECT name, symbol FROM currencies WHERE cid = ?'
-    toQuery = 'INSERT INTO currencies (cid, name, symbol) VALUES (?,?,?)'
+    loadQuery = 'SELECT name, symbol FROM currencies WHERE cid = ?'
+    createQuery = 'INSERT INTO currencies (name, symbol) VALUES (?,?)'
+    updateQuery = 'UPDATE currencies SET name = ?, symbol = ? WHERE cid = ?'
 
     #def __init__(self):
     #    super().__init__()
 
     @classmethod
-    def fromData(name, symbol, cid=None):
+    def fromData(self, name, symbol, cid=None):
         """This is a constructor. Really."""
+        print('Constructor: {} {} {}'.format(name, symbol, cid))
         this = Currency()
         this.name = name
         this.symbol = symbol
@@ -95,25 +100,28 @@ class Currency(SqliteItem):
         return this
 
     @classmethod
-    def fromDB(cid):
+    def fromDB(self, cid):
         """This is a constructor. Really."""
         this = Currency()
         (this.name, this.symbol) = super(Currency, this).load(this, cid)
         this.cid = cid
         return this
 
-    def toDB(self):
-        data = (self.cid, self.name, self.symbol)
-        cid = super(Currency, self).save(self.toQuery, data)
-        self.cid = cid if self.cid is None else self.cid
+    def createInDB(self):
+        data = (self.name, self.symbol)
+        self.cid = super(Currency, self).create(data)
         return self.cid
+
+    def updateInDB(self):
+        data = (self.cid, self.name, self.symbol)
+        return super(Currency, self).update(self, data)
 
     def printSelf(self):
         print('Currency {}, Symbol {}'.format(self.name, self.symbol))
 
-
+# Testing. Please stand back.
 if __name__ == '__main__':
     euro = Currency.fromData('Euro', '€')
     euro.printSelf()
-    cid = euro.toDB()
+    cid = euro.createInDB()
     print('New ID: {}'.format(cid))
