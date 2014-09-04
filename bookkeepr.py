@@ -35,8 +35,12 @@ class Bill(SqliteItem):
 
 class Tag(SqliteItem):
     @classmethod
-    def fromDB(self, tid:
-        raise NotImplemented
+    def fromDB(tid):
+        """Mom, it's not a phase! I'm a constructor, really!"""
+        this = Tag()
+        this.text = super(Tag, this).load(this, tid)
+        this.tid = tid
+        return this
 
     @classmethod
     def fromData():
@@ -48,20 +52,20 @@ class User(SqliteItem):
     toQuery = 'INSERT INTO users (uid, login, password) VALUES (?,?,?)'
 
     @classmethod
-    def fromDB(self, uid):
+    def fromDB(uid):
         """This is a constructor. Really."""
         this = User()
-        (this.name, this.password) = super(User, self).load(this, uid)
+        (this.name, this.password) = super(User, this).load(this, uid)
         this.uid = uid
         return this
 
     @classmethod
-    def fromData(self, login, password, uid=None):
+    def fromData(login, password, uid=None):
         """This is a constructor. Really."""
         this = User()
         this.login = login
-        self.password = sha1(password).hexdigest()
-        self.uid = uid
+        this.password = sha1(password).hexdigest()
+        this.uid = uid
         return this
 
     def toDB(self):
@@ -82,7 +86,7 @@ class Currency(SqliteItem):
     #    super().__init__()
 
     @classmethod
-    def fromData(self, name, symbol, cid=None):
+    def fromData(name, symbol, cid=None):
         """This is a constructor. Really."""
         this = Currency()
         this.name = name
@@ -91,10 +95,10 @@ class Currency(SqliteItem):
         return this
 
     @classmethod
-    def fromDB(self, cid):
+    def fromDB(cid):
         """This is a constructor. Really."""
         this = Currency()
-        (this.name, this.symbol) = super(Currency, self).load(this, cid)
+        (this.name, this.symbol) = super(Currency, this).load(this, cid)
         this.cid = cid
         return this
 
