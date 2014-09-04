@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 import sqlite3
 from os.path import expanduser
+from hashlib import sha1
 
 
-class DBItem(object):
+class SqliteItem(object):
     dbpath = expanduser('~/.bookkeepr/user.db')
 
     def __init__(self):
@@ -12,15 +13,17 @@ class DBItem(object):
 
     def load(self, itemId):
         self.cr.execute(self.fromQuery, itemId)
+        self.con.commit()
         return self.c.fetchone()
 
+    ##TODO fix for updates!
     def save(self, query, data):
         self.c.execute(query, data)
         self.con.commit()
-        return c.lastrowid
+        return self.c.lastrowid
 
 
-class Bill(DBItem):
+class Bill(SqliteItem):
     @classmethod
     def fromDB():
         raise NotImplemented
@@ -30,7 +33,7 @@ class Bill(DBItem):
         raise NotImplemented
 
 
-class Tag(DBItem):
+class Tag(SqliteItem):
     @classmethod
     def fromDB():
         raise NotImplemented
@@ -40,23 +43,44 @@ class Tag(DBItem):
         raise NotImplemented
 
 
-class User(DBItem):
-    @classmethod
-    def fromDB():
-        raise NotImplemented
-
-    @classmethod
-    def fromData():
-        raise NotImplemented
-
-
-class Currency(DBItem):
+class User(SqliteItem):
     fromQuery = 'SELECT name, symbol FROM currencies WHERE cid = ?'
     toQuery = 'INSERT INTO currencies (cid, name, symbol) VALUES (?,?,?)'
-    dbpath = expanduser('~/.bookkeepr/user.db')
+
+    @classmethod
+    def fromDB(self, uid):
+        """This is a constructor. Really."""
+        this = User()
+        (this.name, this.password) = super(User, self).load(this, uid)
+        this.uid = uid
+        return this
+
+    @classmethod
+    def fromData(self, login, password, uid=None):
+        """This is a constructor. Really."""
+        this = User()
+        this.login = login
+        self.password = sha1(password).hexdigest()
+        self.uid = uid
+        return this
+
+    def toDB(self):
+        data = (self.uid, self.login, self.password)
+        uid = super(User, self).save(self.toQuery, data)
+        self.uid = uid if self.uid is None else self.uid
+        return self.uid
+
+
+class Currency(SqliteItem):
+    fromQuery = 'SELECT name, symbol FROM currencies WHERE cid = ?'
+    toQuery = 'INSERT INTO currencies (cid, name, symbol) VALUES (?,?,?)'
+
+    #def __init__(self):
+    #    super().__init__()
 
     @classmethod
     def fromData(self, name, symbol, cid=None):
+        """This is a constructor. Really."""
         this = Currency()
         this.name = name
         this.symbol = symbol
@@ -64,29 +88,25 @@ class Currency(DBItem):
         return this
 
     @classmethod
-    def fromDB(self, itemId):
+    def fromDB(self, cid):
+        """This is a constructor. Really."""
         this = Currency()
-        (this.name, this.symbol) = super.load(this, itemId)
-        this.cid = itemId
+        (this.name, this.symbol) = super(Currency, self).load(this, cid)
+        this.cid = cid
         return this
 
     def toDB(self):
-        con = sqlite3.connect(self.dbpath)
-        c = con.cursor()
-        c.execute(self.toQuery, (self.cid, self.name, self.symbol))
-        con.commit()
-        con.close()
-        return c.lastrowid
-
-    def toDBtest(self):
-        return super.save(self.toQuery, (self.cid, self.name, self.symbol))
+        data = (self.cid, self.name, self.symbol)
+        cid = super(Currency, self).save(self.toQuery, data)
+        self.cid = cid if self.cid is None else self.cid
+        return self.cid
 
     def toString(self):
         print('Currency {}, Symbol {}'.format(self.name, self.symbol))
 
 
 if __name__ == '__main__':
-    c = Currency.fromData('Euro', '€')
-    c.toString()
-    cid = c.toDB()
+    euro = Currency.fromData('Euro', '€')
+    euro.toString()
+    cid = euro.toDB()
     print('New ID: {}'.format(cid))
