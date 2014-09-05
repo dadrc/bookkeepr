@@ -5,6 +5,10 @@ from hashlib import sha1
 
 
 class SqliteItem(object):
+    """
+    Persistence.
+    Define queries in classes inheriting from here, use methods, ???, profit
+    """
     dbpath = expanduser('~/.bookkeepr/user.db')
 
     def __init__(self):
@@ -27,55 +31,105 @@ class SqliteItem(object):
 
 
 class Bill(SqliteItem):
-    @classmethod
-    def fromDB():
-        raise NotImplemented
+    loadQuery = 'SELECT image, name, amount FROM bills WHERE bid = ?'
+    createQuery = 'INSERT INTO bills (image, name, amount) VALUES (?,?,?)'
+    updateQuery = ('UPDATE bills SET '
+                   'image = ?, name = ?, amount = ? '
+                   'WHERE bid = ?')
 
     @classmethod
-    def fromData():
-        raise NotImplemented
+    def fromDB(self, bid):
+        """Another constructor."""
+        obj = Bill()
+        (obj.image, obj.name, obj.amount) = super(Bill, obj).load(obj, bid)
+        obj.tags = ()
+        obj.bid = bid
+        return obj
+
+    @classmethod
+    def fromData(self, image, name, amount, bid=None):
+        """Another constructor."""
+        obj = Bill()
+        obj.tags = ()
+        obj.image = image
+        obj.name = name
+        obj.amount = amount
+        obj.bid = bid
+        return obj
+
+    #TODO save tags
+    def createInDB(self):
+        data = (self.image, self.name, self.amount)
+        self.bid = super(Bill, self).create(self, data)
+        return self.bid
+
+    #TODO save tags
+    def updateInDB(self):
+        data = (self.image, self.name, self.amount, self.bid)
+        return super(Bill, self).update(self, data)
 
 
 class Tag(SqliteItem):
+    loadQuery = 'SELECT tag FROM tags WHERE tid = ?'
+    createQuery = 'INSERT INTO tags (tag) VALUES (?)'
+    updateQuery = 'UPDATE tags SET tag = ? WHERE tid = ?'
+
     @classmethod
     def fromDB(self, tid):
         """Mom, it's not a phase! I'm a constructor, really!"""
-        this = Tag()
-        this.text = super(Tag, this).load(this, tid)
-        this.tid = tid
-        return this
+        obj = Tag()
+        obj.tag = super(Tag, obj).load(obj, tid)
+        obj.tid = tid
+        return obj
 
     @classmethod
-    def fromData():
-        raise NotImplemented
+    def fromData(self, tag, tid=None):
+        """Mom, it's not a phase! I'm a constructor, really!"""
+        obj = Tag()
+        obj.tag = tag
+        obj.tid = tid
+        return obj
+
+    def createInDB(self):
+        data = (self.tag)
+        self.tid = super(Tag, self).create(self, data)
+        return self.tid
+
+    def updateInDB(self):
+        data = (self.tag, self.tid)
+        return super(Tag, self).update(self, data)
 
 
 class User(SqliteItem):
-    fromQuery = 'SELECT login, password FROM users WHERE uid = ?'
-    toQuery = 'INSERT INTO users (uid, login, password) VALUES (?,?,?)'
+    loadQuery = 'SELECT login, password FROM users WHERE uid = ?'
+    createQuery = 'INSERT INTO users (login, password) VALUES (?,?)'
+    updateQuery = 'UPDATE users SET login = ?, password = ? WHERE uid = ?'
 
     @classmethod
     def fromDB(self, uid):
         """This is a constructor. Really."""
-        this = User()
-        (this.name, this.password) = super(User, this).load(this, uid)
-        this.uid = uid
-        return this
+        obj = User()
+        (obj.name, obj.password) = super(User, obj).load(obj, uid)
+        obj.uid = uid
+        return obj
 
     @classmethod
     def fromData(self, login, password, uid=None):
         """This is a constructor. Really."""
-        this = User()
-        this.login = login
-        this.password = sha1(password).hexdigest()
-        this.uid = uid
-        return this
+        obj = User()
+        obj.login = login
+        obj.password = sha1(password).hexdigest()
+        obj.uid = uid
+        return obj
 
-    def toDB(self):
-        data = (self.uid, self.login, self.password)
-        uid = super(User, self).save(self.toQuery, data)
-        self.uid = uid if self.uid is None else self.uid
+    def createInDB(self):
+        data = (self.login, self.password)
+        self.uid = super(User, self).save(self, data)
         return self.uid
+
+    def updateInDB(self):
+        data = (self.login, self.password, self.uid)
+        return super(User, self).update(self, data)
 
     def printSelf(self):
         print('User {}, password hash {}'.format(self.login, self.password))
@@ -92,20 +146,19 @@ class Currency(SqliteItem):
     @classmethod
     def fromData(self, name, symbol, cid=None):
         """This is a constructor. Really."""
-        print('Constructor: {} {} {}'.format(name, symbol, cid))
-        this = Currency()
-        this.name = name
-        this.symbol = symbol
-        this.cid = cid
-        return this
+        obj = Currency()
+        obj.name = name
+        obj.symbol = symbol
+        obj.cid = cid
+        return obj
 
     @classmethod
     def fromDB(self, cid):
         """This is a constructor. Really."""
-        this = Currency()
-        (this.name, this.symbol) = super(Currency, this).load(this, cid)
-        this.cid = cid
-        return this
+        obj = Currency()
+        (obj.name, obj.symbol) = super(Currency, obj).load(obj, cid)
+        obj.cid = cid
+        return obj
 
     def createInDB(self):
         data = (self.name, self.symbol)
@@ -113,7 +166,7 @@ class Currency(SqliteItem):
         return self.cid
 
     def updateInDB(self):
-        data = (self.cid, self.name, self.symbol)
+        data = (self.name, self.symbol, self.cid)
         return super(Currency, self).update(self, data)
 
     def printSelf(self):
