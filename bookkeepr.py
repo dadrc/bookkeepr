@@ -68,6 +68,16 @@ class Bill(SqliteItem):
         data = (self.image, self.name, self.amount, self.bid)
         return super(Bill, self).update(self, data)
 
+    def save(self):
+        if self.bid is None:
+            self.createInDB()
+            for tag in self.tags:
+                tag.save()
+        else:
+            self.updateInDB()
+            for tag in self.tags:
+                tag.save()
+
 
 class Tag(SqliteItem):
     loadQuery = 'SELECT tag FROM tags WHERE tid = ?'
