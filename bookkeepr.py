@@ -57,26 +57,27 @@ class Bill(SqliteItem):
         obj.bid = bid
         return obj
 
-    #TODO save tags
-    def createInDB(self):
+    def create(self):
         data = (self.image, self.name, self.amount)
         self.bid = super(Bill, self).create(self, data)
         return self.bid
 
-    #TODO save tags
-    def updateInDB(self):
+    def update(self):
         data = (self.image, self.name, self.amount, self.bid)
-        return super(Bill, self).update(self, data)
+        super(Bill, self).update(self, data)
+        return self.bid
 
     def save(self):
+        """Save self and related data to the DB"""
         if self.bid is None:
-            self.createInDB()
+            self.create()
             for tag in self.tags:
                 tag.save()
         else:
-            self.updateInDB()
+            self.update()
             for tag in self.tags:
                 tag.save()
+        return self.bid
 
 
 class Tag(SqliteItem):
@@ -100,14 +101,21 @@ class Tag(SqliteItem):
         obj.tid = tid
         return obj
 
-    def createInDB(self):
+    def create(self):
         data = (self.tag)
         self.tid = super(Tag, self).create(self, data)
         return self.tid
 
-    def updateInDB(self):
+    def update(self):
         data = (self.tag, self.tid)
-        return super(Tag, self).update(self, data)
+        super(Tag, self).update(self, data)
+        return self.tid
+
+    def save(self):
+        if self.tid is None:
+            return self.create()
+        else:
+            return self.update()
 
 
 class User(SqliteItem):
@@ -132,14 +140,21 @@ class User(SqliteItem):
         obj.uid = uid
         return obj
 
-    def createInDB(self):
+    def create(self):
         data = (self.login, self.password)
         self.uid = super(User, self).save(self, data)
         return self.uid
 
-    def updateInDB(self):
+    def update(self):
         data = (self.login, self.password, self.uid)
-        return super(User, self).update(self, data)
+        super(User, self).update(self, data)
+        return self.uid
+
+    def save(self):
+        if self.uid is None:
+            return self.create()
+        else:
+            return self.update()
 
     def printSelf(self):
         print('User {}, password hash {}'.format(self.login, self.password))
@@ -170,14 +185,21 @@ class Currency(SqliteItem):
         obj.cid = cid
         return obj
 
-    def createInDB(self):
+    def create(self):
         data = (self.name, self.symbol)
         self.cid = super(Currency, self).create(data)
         return self.cid
 
-    def updateInDB(self):
+    def update(self):
         data = (self.name, self.symbol, self.cid)
-        return super(Currency, self).update(self, data)
+        super(Currency, self).update(self, data)
+        return self.cid
+
+    def save(self):
+        if self.cid is None:
+            return self.create()
+        else:
+            return self.update()
 
     def printSelf(self):
         print('Currency {}, Symbol {}'.format(self.name, self.symbol))
@@ -186,5 +208,5 @@ class Currency(SqliteItem):
 if __name__ == '__main__':
     euro = Currency.fromData('Euro', '€')
     euro.printSelf()
-    cid = euro.createInDB()
+    cid = euro.save()
     print('New ID: {}'.format(cid))
